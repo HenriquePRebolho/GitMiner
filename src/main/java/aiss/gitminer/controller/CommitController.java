@@ -94,7 +94,7 @@ public class CommitController {
     }
 
 
-    // POST http://localhost:8080/gitminer
+
     @Operation(
             summary = "Post a new commit",
             description = "Create a new commit",
@@ -114,7 +114,7 @@ public class CommitController {
         return newCommit;
     }
 
-    /*
+/*
     @Operation(
             summary = "Put a new commit",
             description = "Update a new commit",
@@ -134,4 +134,6 @@ public class CommitController {
         return newCommit;
     }
     */
+
+
 }
