@@ -94,7 +94,20 @@ public class IssueControler {
         return foundIssue.get();
     }
 
-
+    @Operation(
+            summary = "Create a new issue",
+            description = "Create and return a new issue",
+            tags = { "issue", "post" }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {
+                    @Content(schema = @Schema(implementation = Issue.class),
+                            mediaType = "application/json") })
+    })
+    @PostMapping
+    public Issue createIssue(@RequestBody Issue issue) {
+        return issueRepository.save(issue);
+    }
     // GET http://localhost:8080/gitminer/issues/:issueId/comments
     @Operation(
             summary = "Retrieve a list of all comments from a specified issue",
