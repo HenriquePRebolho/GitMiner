@@ -93,5 +93,10 @@ public class UserController {
         return foundUser.get();
     }
 
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userRepository.save(user);
+    }
+
 
 }
