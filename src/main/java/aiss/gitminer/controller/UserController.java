@@ -93,9 +93,23 @@ public class UserController {
         return foundUser.get();
     }
 
+
+    // POST http://localhost:8080/gitminer/users
+    @Operation(
+            summary = "Post a new user",
+            description = "Create and return a new user",
+            tags = { "user", "post" }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = User.class), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())})
+    })
     @PostMapping
     public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+        User newUser = userRepository.save(
+            new User(user.getUsername(), user.getName(), user.getAvatarUrl(), user.getWebUrl())
+        );
+        return newUser;
     }
 
 

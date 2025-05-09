@@ -94,7 +94,7 @@ public class CommitController {
     }
 
 
-
+    // POST http://localhost:8080/gitminer/commits
     @Operation(
             summary = "Post a new commit",
             description = "Create a new commit",

@@ -35,11 +35,11 @@ public class Project {
     @JoinColumn(name = "projectId")
     private List<Issue> issues;
 
-    public Project(String name, String webUrl) {
+    public Project(String name, String webUrl, List<Commit> commits, List<Issue> issues) {
         this.name = name;
         this.webUrl = webUrl;
-        commits = new ArrayList<>();
-        issues = new ArrayList<>();
+        this.commits = commits;
+        this.issues = issues;
     }
 
     public Long getId() {

@@ -4,6 +4,7 @@ import aiss.gitminer.exception.IssueNotFoundException;
 import aiss.gitminer.model.Comment;
 import aiss.gitminer.model.Issue;
 import aiss.gitminer.repository.IssueRepository;
+import com.sun.tools.jconsole.JConsoleContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -94,20 +95,7 @@ public class IssueControler {
         return foundIssue.get();
     }
 
-    @Operation(
-            summary = "Create a new issue",
-            description = "Create and return a new issue",
-            tags = { "issue", "post" }
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", content = {
-                    @Content(schema = @Schema(implementation = Issue.class),
-                            mediaType = "application/json") })
-    })
-    @PostMapping
-    public Issue createIssue(@RequestBody Issue issue) {
-        return issueRepository.save(issue);
-    }
+    
     // GET http://localhost:8080/gitminer/issues/:issueId/comments
     @Operation(
             summary = "Retrieve a list of all comments from a specified issue",
@@ -148,5 +136,26 @@ public class IssueControler {
     }
 
 
+
+    // POST http://localhost:8080/gitminer/issues
+    @Operation(
+            summary = "Post a new issue",
+            description = "Create and return a new issue",
+            tags = { "issue", "post" }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Issue.class), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())})
+    })
+    @PostMapping()
+    public Issue createIssue(@RequestBody Issue issue) {
+        Issue newIssue = issueRepository.save(
+                new Issue(issue.getTitle(), issue.getDescription(), issue.getState(),
+                        issue.getCreatedAt(), issue.getUpdatedAt(), issue.getClosedAt(),
+                        issue.getLabels(), issue.getAuthor(), issue.getAssignee(),
+                        issue.getVotes(), issue.getComments())
+        );
+        return newIssue;
+    }
 
 }
