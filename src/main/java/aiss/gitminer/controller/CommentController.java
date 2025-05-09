@@ -79,6 +79,8 @@ public class CommentController {
                     {@Content(schema = @Schema(implementation = Comment.class),
                             mediaType = "application/json")})
     })
+
+
     @GetMapping("/{id}")
     public Comment findById(@Parameter(description = "id of a comment to be searched")
                             @PathVariable Long id) throws CommentNotFoundException {
@@ -88,6 +90,20 @@ public class CommentController {
             throw new CommentNotFoundException();
         }
         return foundComment.get();
+    }
+    @Operation(
+            summary = "Create a new comment",
+            description = "Creates a new comment in the database",
+            tags = {"comments", "post"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {
+                    @Content(schema = @Schema(implementation = Comment.class),
+                            mediaType = "application/json")})
+    })
+    @PostMapping
+    public Comment createComment(@RequestBody Comment comment) {
+        return commentRepository.save(comment);
     }
 
 
