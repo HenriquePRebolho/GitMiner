@@ -3,8 +3,12 @@ package aiss.gitminer.controller;
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.exception.ProjectNotFoundException;
 import aiss.gitminer.model.Commit;
+import aiss.gitminer.model.Issue;
 import aiss.gitminer.model.Project;
+import aiss.gitminer.model.User;
+import aiss.gitminer.repository.CommitRepository;
 import aiss.gitminer.repository.ProjectRepository;
+import aiss.gitminer.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Tag(name = "Project", description = "Project management API")
 @RestController // indicar que es controlador
@@ -32,6 +37,12 @@ public class ProjectController {
 
     @Autowired // cargar repositorio de projects con datos
     ProjectRepository projectRepository;
+
+    @Autowired
+    CommitRepository commitRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     // GET https://localhost:8080/giminer/projects
     @Operation(
@@ -46,7 +57,7 @@ public class ProjectController {
     @GetMapping // especificar metodo HTTP a utilizar
     public List<Project> findAll (@RequestParam(required = false) String name,
                                   @RequestParam(required = false) String order,
-                                  @RequestParam(defaultValue = "5") int page,
+                                  @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "5") int size) {
         Pageable paging;
 
@@ -110,10 +121,42 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
     public Project createProject(@Valid @RequestBody Project project) {
-        Project newProject = projectRepository.save(
-                new Project(project.getName(), project.getWebUrl(),
-                        project.getCommits(), project.getIssues()));
-        return newProject;
+
+        List<Commit> managedCommits = project.getCommits().stream()
+                .map(commit -> commitRepository.save(commit))
+                .collect(Collectors.toList());
+
+        List<Issue> managedIssues = project.getIssues().stream()
+                .map(issue -> {
+                    // Attach existing author or save new
+                    User author = userRepository.findByEmail(issue.getAuthor().getEmail())
+                            .orElseGet(() -> userRepository.save(issue.getAuthor()));
+
+                    // Same for assignee
+                    User assignee = userRepository.findByEmail(issue.getAssignee().getEmail())
+                            .orElseGet(() -> userRepository.save(issue.getAssignee()));
+
+                    // Save commits separately (if needed)
+                    List<Commit> issueCommits = issue.getCommits().stream()
+                            .map(commit -> commitRepository.save(commit))
+                            .collect(Collectors.toList());
+
+                    issue.setAuthor(author);
+                    issue.setAssignee(assignee);
+                    issue.setCommits(issueCommits);
+
+                    return issueRepository.save(issue);
+                })
+                .collect(Collectors.toList());
+
+        Project newProject = new Project(
+                project.getName(),
+                project.getWebUrl(),
+                managedCommits,
+                managedIssues
+        );
+
+        return projectRepository.save(newProject);
     }
 
 

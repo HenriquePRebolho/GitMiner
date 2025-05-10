@@ -44,7 +44,7 @@ public class CommitController {
     @GetMapping // especificar metodo HTTP a utilizar
     public List<Commit> findAll (@RequestParam(required = false) String author_name,
                                @RequestParam(required = false) String order,
-                               @RequestParam(defaultValue = "5") int page,
+                               @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size) {
         Pageable paging;
 

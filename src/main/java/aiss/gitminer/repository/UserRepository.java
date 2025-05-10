@@ -11,6 +11,5 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findByName (String name, Pageable pageable); // metodo de parametros opcionales
-    // Page<User> findByNameContaining (String name, Pageable pageable);
-    // ...
+    Page<User> findByEmail (String email, Pageable pageable);
 }
