@@ -31,6 +31,8 @@ public class User {
     @JsonProperty("web_url")
     private String webUrl;
 
+    public User() {}
+
     public User(String username, String name, String avatarUrl, String webUrl) {
         this.username = username;
         this.name = name;

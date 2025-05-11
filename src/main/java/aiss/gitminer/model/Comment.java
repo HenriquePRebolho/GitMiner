@@ -35,6 +35,8 @@ public class Comment {
     @JsonProperty("updated_at")
     private String updatedAt;
 
+    public Comment() {}
+
     public Comment(String body, User author, String createdAt, String updatedAt) {
         this.body = body;
         this.author = author;

@@ -1,7 +1,10 @@
 package aiss.gitminer.controller;
 
+import aiss.gitminer.exception.IssueNotFoundException;
 import aiss.gitminer.exception.ProjectNotFoundException;
 import aiss.gitminer.exception.UserNotFoundException;
+import aiss.gitminer.model.Comment;
+import aiss.gitminer.model.Issue;
 import aiss.gitminer.model.Project;
 import aiss.gitminer.model.User;
 import aiss.gitminer.repository.UserRepository;
@@ -43,7 +46,7 @@ public class UserController {
     @GetMapping // especificar metodo HTTP a utilizar
     public List<User> findAll (@RequestParam(required = false) String name,
                                   @RequestParam(required = false) String order,
-                                  @RequestParam(defaultValue = "5") int page,
+                                  @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "5") int size) {
         Pageable paging;
 

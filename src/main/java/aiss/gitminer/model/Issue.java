@@ -64,6 +64,8 @@ public class Issue {
     @JoinColumn(name = "issueId")
     private List<Comment> comments;
 
+    public Issue() {}
+
     public Issue(String title, String description, String state, String createdAt,
                  String updatedAt, String closedAt, List<String> labels, User author,
                  User assignee, Integer votes, List<Comment> comments) {

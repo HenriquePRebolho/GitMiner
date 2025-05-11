@@ -2,11 +2,10 @@ package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.exception.ProjectNotFoundException;
-import aiss.gitminer.model.Commit;
-import aiss.gitminer.model.Issue;
-import aiss.gitminer.model.Project;
-import aiss.gitminer.model.User;
+import aiss.gitminer.model.*;
+import aiss.gitminer.controller.UserController;
 import aiss.gitminer.repository.CommitRepository;
+import aiss.gitminer.repository.IssueRepository;
 import aiss.gitminer.repository.ProjectRepository;
 import aiss.gitminer.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.validation.Valid;
 import java.util.List;
@@ -43,6 +43,9 @@ public class ProjectController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    IssueRepository issueRepository;
 
     // GET https://localhost:8080/giminer/projects
     @Operation(
@@ -122,39 +125,45 @@ public class ProjectController {
     @PostMapping()
     public Project createProject(@Valid @RequestBody Project project) {
 
-        List<Commit> managedCommits = project.getCommits().stream()
+        List<Commit> projectCommits = project.getCommits().stream()
                 .map(commit -> commitRepository.save(commit))
                 .collect(Collectors.toList());
 
-        List<Issue> managedIssues = project.getIssues().stream()
+        List<Issue> projectIssues = project.getIssues().stream()
                 .map(issue -> {
-                    // Attach existing author or save new
-                    User author = userRepository.findByEmail(issue.getAuthor().getEmail())
-                            .orElseGet(() -> userRepository.save(issue.getAuthor()));
-
-                    // Same for assignee
-                    User assignee = userRepository.findByEmail(issue.getAssignee().getEmail())
-                            .orElseGet(() -> userRepository.save(issue.getAssignee()));
-
-                    // Save commits separately (if needed)
-                    List<Commit> issueCommits = issue.getCommits().stream()
-                            .map(commit -> commitRepository.save(commit))
-                            .collect(Collectors.toList());
-
+                    // persist author
+                    User author = userRepository.findByUsername(issue.getAuthor().getUsername())
+                            .orElseGet(() -> userRepository.save((issue.getAuthor())));
                     issue.setAuthor(author);
-                    issue.setAssignee(assignee);
-                    issue.setCommits(issueCommits);
+
+                    // persist assignee
+                    if (issue.getAssignee() != null) {
+                        User assignee = userRepository.findByUsername(issue.getAssignee().getUsername())
+                                .orElseGet(() -> userRepository.save(issue.getAssignee()));
+                        issue.setAssignee(assignee);
+                    }
+
+                    // persist comments
+                    List<Comment> projectComments = issue.getComments().stream()
+                        .map(comment -> {
+                            User commentAuthor = userRepository.findByUsername(issue.getAuthor().getUsername())
+                                    .orElseGet(() -> userRepository.save((issue.getAuthor())));
+                                comment.setAuthor(commentAuthor);
+                                return comment;
+                            })
+                        .collect(Collectors.toList());
+                    issue.setComments(projectComments);
 
                     return issueRepository.save(issue);
                 })
                 .collect(Collectors.toList());
 
-        Project newProject = new Project(
-                project.getName(),
-                project.getWebUrl(),
-                managedCommits,
-                managedIssues
-        );
+        // Saving project with persisted objects
+        Project newProject = new Project();
+        newProject.setName(project.getName());
+        newProject.setWebUrl(project.getWebUrl());
+        newProject.setCommits(project.getCommits());
+        newProject.setIssues(project.getIssues());
 
         return projectRepository.save(newProject);
     }
