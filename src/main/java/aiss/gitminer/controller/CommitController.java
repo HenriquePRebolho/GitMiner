@@ -31,7 +31,7 @@ public class CommitController {
     @Autowired // cargar repositorio de commit con datos
     CommitRepository commitRepository;
 
-    // Devolver todos los users
+    // GET http://locahost:8080/gitminer/commits
     @Operation(
             summary = "Get a list of all commits",
             description = "Retrieve a list of all commits",
@@ -71,7 +71,7 @@ public class CommitController {
         return pageCommits.getContent();
     }
 
-
+    // GET http://localhost:8080/gitminer/commits/:id
     @Operation(
             summary = "Get a commit by id",
             description = "Find a commit by it's id",
@@ -113,27 +113,5 @@ public class CommitController {
                         commit.getAuthoredDate(), commit.getWebUrl()));
         return newCommit;
     }
-
-/*
-    @Operation(
-            summary = "Put a new commit",
-            description = "Update a new commit",
-            tags = {"post", "commit"}
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Commit.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "400", content = {@Content(schema=@Schema())})
-    })
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping
-    public Commit updateCommit(@Valid @RequestBody Commit commit) {
-        Commit newCommit = commitRepository.save(
-                new Commit(commit.getTitle(), commit.getMessage(),
-                        commit.getAuthorName(), commit.getAuthorEmail(),
-                        commit.getAuthoredDate(), commit.getWebUrl()));
-        return newCommit;
-    }
-    */
-
 
 }

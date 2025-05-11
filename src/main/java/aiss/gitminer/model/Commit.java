@@ -1,11 +1,9 @@
 package aiss.gitminer.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.transaction.reactive.GenericReactiveTransaction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "Commit")
@@ -36,7 +34,7 @@ public class Commit {
     @JsonProperty("web_url")
     @NotEmpty(message = "URL cannot be empty." +
             "")
-    private String webUrl;
+        private String webUrl;
 
     public Commit() {}
 

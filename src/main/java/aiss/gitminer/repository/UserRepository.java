@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-
     Page<User> findByName (String name, Pageable pageable); // metodo de parametros opcionales
     Optional<User> findByUsername(String username);
 }

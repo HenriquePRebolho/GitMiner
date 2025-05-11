@@ -1,9 +1,7 @@
 package aiss.gitminer.controller;
 
-import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.exception.ProjectNotFoundException;
 import aiss.gitminer.model.*;
-import aiss.gitminer.controller.UserController;
 import aiss.gitminer.repository.CommitRepository;
 import aiss.gitminer.repository.IssueRepository;
 import aiss.gitminer.repository.ProjectRepository;
@@ -23,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +30,6 @@ import java.util.stream.Collectors;
 @RestController // indicar que es controlador
 @RequestMapping("/gitminer/projects")
 public class ProjectController {
-
 
     @Autowired // cargar repositorio de projects con datos
     ProjectRepository projectRepository;
@@ -47,7 +43,7 @@ public class ProjectController {
     @Autowired
     IssueRepository issueRepository;
 
-    // GET https://localhost:8080/giminer/projects
+    // GET http://localhost:8080/giminer/projects
     @Operation(
             summary = "Get a list of all projects",
             description = "Retrieve a list of all projects",
@@ -88,7 +84,7 @@ public class ProjectController {
     }
 
 
-    // GET https://localhost:8080/giminer/projects/:projectId
+    // GET http://localhost:8080/giminer/projects/:projectId
     @Operation(
             summary = "Get a project by id",
             description = "Find a project by it's id",
@@ -169,38 +165,6 @@ public class ProjectController {
     }
 
 
-    // PUT http://localhost:8080/api/projects/:projectId
-    @Operation(
-            summary = "Put a new project",
-            description = "Update a new project",
-            tags = {"put", "project"}
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Project.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())}),
-            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())})
-    })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PutMapping("/{id}")
-    public void updateProject(@Valid @RequestBody Project updatedProject,
-                                 @Parameter (description = "id of the project to be updated") @PathVariable Long id)
-                                throws ProjectNotFoundException {
-        Optional<Project> foundProject = projectRepository.findById(id);
-
-        if (!foundProject.isPresent()) {
-            throw new ProjectNotFoundException();
-        }
-        Project nowProject = foundProject.get();
-
-        nowProject.setName(updatedProject.getName());
-        nowProject.setWebUrl(updatedProject.getWebUrl());
-        nowProject.setCommits(updatedProject.getCommits());
-        nowProject.setIssues(updatedProject.getIssues());
-
-        projectRepository.save(nowProject);
-    }
-
-
     // DELETE http://localhost:8080/api/projects/:projectId
     @Operation(
             summary = "Delete a new project",
@@ -224,6 +188,5 @@ public class ProjectController {
         }
         projectRepository.deleteById(id);
     }
-
 
 }
