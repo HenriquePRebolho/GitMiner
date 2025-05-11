@@ -1,11 +1,6 @@
 package aiss.gitminer.controller;
 
-import aiss.gitminer.exception.IssueNotFoundException;
-import aiss.gitminer.exception.ProjectNotFoundException;
 import aiss.gitminer.exception.UserNotFoundException;
-import aiss.gitminer.model.Comment;
-import aiss.gitminer.model.Issue;
-import aiss.gitminer.model.Project;
 import aiss.gitminer.model.User;
 import aiss.gitminer.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +28,7 @@ public class UserController {
     @Autowired // cargar repositorio de user con datos
     UserRepository userRepository;
 
-    // Devolver todos los users
+    // GET http://localhost:8080/gitminer/users
     @Operation(
             summary = "Retrieve a list of all users",
             description = "Get a list of all users",
@@ -114,6 +109,5 @@ public class UserController {
         );
         return newUser;
     }
-
 
 }

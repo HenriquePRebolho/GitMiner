@@ -11,6 +11,4 @@ import java.util.Optional;
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, Long> {
     Page<Issue> findByState(String state, Pageable paging);
-
-    Page<Issue> findByAuthorId(Long id, Pageable paging);
 }

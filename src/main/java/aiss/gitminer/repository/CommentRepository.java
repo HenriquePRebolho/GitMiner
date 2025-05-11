@@ -9,6 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentRepository extends JpaRepository <Comment, Long> {
     Page<Comment> findByAuthor(String author, Pageable paging);
-    // Page<Comment> findByAuthor (String author, Pageable pageable); // Implementar?
-    // Page<Comment> findByCreation (String createdAt, Pageable pageable); // Implementar?
 }

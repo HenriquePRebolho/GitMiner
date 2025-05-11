@@ -94,7 +94,6 @@ public class IssueControler {
             pageIssues = issueRepository.findAll(paging);
             return pageIssues.getContent();
         }
-        //return pageIssues.getContent();
     }
 
 
@@ -143,28 +142,6 @@ public class IssueControler {
         List<Comment> issueComments = issueFound.get().getComments();
 
         return issueComments;
-    }
-
-
-    // POST http://localhost:8080/gitminer/issues
-    @Operation(
-            summary = "Post a new issue",
-            description = "Create and return a new issue",
-            tags = { "issue", "post" }
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Issue.class), mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())})
-    })
-    @PostMapping()
-    public Issue createIssue(@RequestBody Issue issue) {
-        Issue newIssue = issueRepository.save(
-                new Issue(issue.getTitle(), issue.getDescription(), issue.getState(),
-                        issue.getCreatedAt(), issue.getUpdatedAt(), issue.getClosedAt(),
-                        issue.getLabels(), issue.getAuthor(), issue.getAssignee(),
-                        issue.getVotes(), issue.getComments())
-        );
-        return newIssue;
     }
 
 }
