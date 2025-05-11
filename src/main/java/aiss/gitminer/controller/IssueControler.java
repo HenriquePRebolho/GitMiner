@@ -1,9 +1,13 @@
 package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.IssueNotFoundException;
+import aiss.gitminer.exception.UserNotFoundException;
 import aiss.gitminer.model.Comment;
 import aiss.gitminer.model.Issue;
+import aiss.gitminer.model.User;
 import aiss.gitminer.repository.IssueRepository;
+import aiss.gitminer.repository.UserRepository;
+import com.sun.tools.jconsole.JConsoleContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Tag(name = "Issue", description = "Issue management API")
 @RestController // indicar que es controlador
@@ -31,7 +36,10 @@ public class IssueControler {
     @Autowired // cargar repositorio de issue con datos
     IssueRepository issueRepository;
 
-    // Devolver todos los projects
+    @Autowired
+    UserRepository userRepository;
+
+    // GET http://localhost:8080/gitminer/issues
     @Operation(
             summary = "Retrieve a list of all issues",
             description = "Get a list of all issues",
@@ -43,9 +51,11 @@ public class IssueControler {
     })
     @GetMapping // especificar metodo HTTP a utilizar
     public List<Issue> findAll (@RequestParam(required = false) String state,
+                                @RequestParam(required = false) Long authorId,
                                   @RequestParam(required = false) String order,
-                                  @RequestParam(defaultValue = "5") int page,
-                                  @RequestParam(defaultValue = "5") int size) {
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "5") int size)
+            throws UserNotFoundException{
         Pageable paging;
 
         if (order != null) {
@@ -62,13 +72,29 @@ public class IssueControler {
 
         Page<Issue> pageIssues;
 
-        if (state == null) {
-            pageIssues = issueRepository.findAll(paging);
+        if (state != null && authorId == null){
+            pageIssues = issueRepository.findByState(state, paging);
+            return pageIssues.getContent();
+        }
+        else if (state == null && authorId != null) {
+            Optional<User> userFound = userRepository.findById(authorId);
+
+            if (!userFound.isPresent()) {
+                throw new UserNotFoundException();
+            }
+
+            List<Issue> issuesByAuthorId = issueRepository.findAll();
+            issuesByAuthorId = issuesByAuthorId.stream()
+                    .filter(issue -> issue.getAuthor().getId().equals(authorId))
+                    .collect(Collectors.toList());
+
+            return issuesByAuthorId;
         }
         else {
-            pageIssues = issueRepository.findByState(state, paging);
+            pageIssues = issueRepository.findAll(paging);
+            return pageIssues.getContent();
         }
-        return pageIssues.getContent();
+        //return pageIssues.getContent();
     }
 
 
@@ -94,20 +120,7 @@ public class IssueControler {
         return foundIssue.get();
     }
 
-    @Operation(
-            summary = "Create a new issue",
-            description = "Create and return a new issue",
-            tags = { "issue", "post" }
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", content = {
-                    @Content(schema = @Schema(implementation = Issue.class),
-                            mediaType = "application/json") })
-    })
-    @PostMapping
-    public Issue createIssue(@RequestBody Issue issue) {
-        return issueRepository.save(issue);
-    }
+    
     // GET http://localhost:8080/gitminer/issues/:issueId/comments
     @Operation(
             summary = "Retrieve a list of all comments from a specified issue",
@@ -115,18 +128,13 @@ public class IssueControler {
             tags = { "comments", "get", "issue" })
     @ApiResponses({
             @ApiResponse(responseCode = "200", content =
-                    {@Content(schema = @Schema(implementation = Issue.class),
+                    {@Content(schema = @Schema(implementation = Comment.class),
                             mediaType = "application/json")})
     })
-    @GetMapping("/:id/comments") // especificar metodo HTTP a utilizar
+    @GetMapping("/{id}/comments") // especificar metodo HTTP a utilizar
     public List<Comment> findIssueComments (
                                 @Parameter(description = "id of the issue to be searched")
-                                              @PathVariable Long id,
-                                @RequestParam(required = false) String order,
-                                @RequestParam(defaultValue = "5") int page,
-                                @RequestParam(defaultValue = "5") int size)
-            throws IssueNotFoundException {
-
+                                              @PathVariable Long id) throws IssueNotFoundException {
         Optional<Issue> issueFound = issueRepository.findById(id);
 
         if (!issueFound.isPresent()) {
@@ -134,19 +142,29 @@ public class IssueControler {
         }
         List<Comment> issueComments = issueFound.get().getComments();
 
-        // ""Orderding"" if set to reverse order
-        if (order != null) {
-            if (order.startsWith("-")) {
-                issueComments.sort(Collections.reverseOrder());
-            }
-        }
-        // ""Pagination""
-        int numComments = issueComments.size();
-        int numPages = numComments / page;
-
-        return issueComments.subList(numPages, numPages+size); // using "pagination"
+        return issueComments;
     }
 
 
+    // POST http://localhost:8080/gitminer/issues
+    @Operation(
+            summary = "Post a new issue",
+            description = "Create and return a new issue",
+            tags = { "issue", "post" }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Issue.class), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())})
+    })
+    @PostMapping()
+    public Issue createIssue(@RequestBody Issue issue) {
+        Issue newIssue = issueRepository.save(
+                new Issue(issue.getTitle(), issue.getDescription(), issue.getState(),
+                        issue.getCreatedAt(), issue.getUpdatedAt(), issue.getClosedAt(),
+                        issue.getLabels(), issue.getAuthor(), issue.getAssignee(),
+                        issue.getVotes(), issue.getComments())
+        );
+        return newIssue;
+    }
 
 }

@@ -2,9 +2,12 @@ package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.exception.ProjectNotFoundException;
-import aiss.gitminer.model.Commit;
-import aiss.gitminer.model.Project;
+import aiss.gitminer.model.*;
+import aiss.gitminer.controller.UserController;
+import aiss.gitminer.repository.CommitRepository;
+import aiss.gitminer.repository.IssueRepository;
 import aiss.gitminer.repository.ProjectRepository;
+import aiss.gitminer.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,9 +23,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Tag(name = "Project", description = "Project management API")
 @RestController // indicar que es controlador
@@ -32,6 +37,15 @@ public class ProjectController {
 
     @Autowired // cargar repositorio de projects con datos
     ProjectRepository projectRepository;
+
+    @Autowired
+    CommitRepository commitRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    IssueRepository issueRepository;
 
     // GET https://localhost:8080/giminer/projects
     @Operation(
@@ -46,7 +60,7 @@ public class ProjectController {
     @GetMapping // especificar metodo HTTP a utilizar
     public List<Project> findAll (@RequestParam(required = false) String name,
                                   @RequestParam(required = false) String order,
-                                  @RequestParam(defaultValue = "5") int page,
+                                  @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "5") int size) {
         Pageable paging;
 
@@ -97,8 +111,6 @@ public class ProjectController {
     }
 
 
-
-
     // POST http://localhost:8080/gitminer/projects
     @Operation(
             summary = "Post a new project",
@@ -112,9 +124,48 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
     public Project createProject(@Valid @RequestBody Project project) {
-        Project newProject = projectRepository.save(
-                new Project(project.getName(), project.getWebUrl()));
-        return newProject;
+
+        List<Commit> projectCommits = project.getCommits().stream()
+                .map(commit -> commitRepository.save(commit))
+                .collect(Collectors.toList());
+
+        List<Issue> projectIssues = project.getIssues().stream()
+                .map(issue -> {
+                    // persist author
+                    User author = userRepository.findByUsername(issue.getAuthor().getUsername())
+                            .orElseGet(() -> userRepository.save((issue.getAuthor())));
+                    issue.setAuthor(author);
+
+                    // persist assignee
+                    if (issue.getAssignee() != null) {
+                        User assignee = userRepository.findByUsername(issue.getAssignee().getUsername())
+                                .orElseGet(() -> userRepository.save(issue.getAssignee()));
+                        issue.setAssignee(assignee);
+                    }
+
+                    // persist comments
+                    List<Comment> projectComments = issue.getComments().stream()
+                        .map(comment -> {
+                            User commentAuthor = userRepository.findByUsername(issue.getAuthor().getUsername())
+                                    .orElseGet(() -> userRepository.save((issue.getAuthor())));
+                                comment.setAuthor(commentAuthor);
+                                return comment;
+                            })
+                        .collect(Collectors.toList());
+                    issue.setComments(projectComments);
+
+                    return issueRepository.save(issue);
+                })
+                .collect(Collectors.toList());
+
+        // Saving project with persisted objects
+        Project newProject = new Project();
+        newProject.setName(project.getName());
+        newProject.setWebUrl(project.getWebUrl());
+        newProject.setCommits(project.getCommits());
+        newProject.setIssues(project.getIssues());
+
+        return projectRepository.save(newProject);
     }
 
 
@@ -148,6 +199,7 @@ public class ProjectController {
 
         projectRepository.save(nowProject);
     }
+
 
     // DELETE http://localhost:8080/api/projects/:projectId
     @Operation(

@@ -3,11 +3,13 @@ package aiss.gitminer.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.jpa.spi.IdentifierGeneratorStrategyProvider;
 
 import javax.annotation.Generated;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
@@ -61,6 +63,24 @@ public class Issue {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "issueId")
     private List<Comment> comments;
+
+    public Issue() {}
+
+    public Issue(String title, String description, String state, String createdAt,
+                 String updatedAt, String closedAt, List<String> labels, User author,
+                 User assignee, Integer votes, List<Comment> comments) {
+        this.title = title;
+        this.description = description;
+        this.state = state;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.closedAt = closedAt;
+        this.labels = labels;
+        this.author = author;
+        this.assignee = assignee;
+        this.votes = votes;
+        this.comments = comments;
+    }
 
     public Long getId() {
         return id;

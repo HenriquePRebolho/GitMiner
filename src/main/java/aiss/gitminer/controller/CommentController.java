@@ -2,6 +2,7 @@ package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.CommentNotFoundException;
 import aiss.gitminer.model.Comment;
+import aiss.gitminer.model.Project;
 import aiss.gitminer.repository.CommentRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,8 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +44,7 @@ public class CommentController {
     @GetMapping // especificar metodo HTTP a utilizar
     public List<Comment> findAll (@RequestParam(required = false) String name,
                                @RequestParam(required = false) String order,
-                               @RequestParam(defaultValue = "5") int page,
+                               @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size) {
         Pageable paging;
 
@@ -68,7 +71,7 @@ public class CommentController {
         return pageComments.getContent();
     }
 
-
+    // GET http:localhost:8080/gitminer/comments/:id
     @Operation(
             summary = "Get a comment by id",
             description = "Find a comment by it's id",
@@ -79,8 +82,6 @@ public class CommentController {
                     {@Content(schema = @Schema(implementation = Comment.class),
                             mediaType = "application/json")})
     })
-
-
     @GetMapping("/{id}")
     public Comment findById(@Parameter(description = "id of a comment to be searched")
                             @PathVariable Long id) throws CommentNotFoundException {
@@ -91,21 +92,24 @@ public class CommentController {
         }
         return foundComment.get();
     }
+
+
+    // POST http://localhost:8080/gitminer/comment
     @Operation(
-            summary = "Create a new comment",
-            description = "Creates a new comment in the database",
-            tags = {"comments", "post"}
+            summary = "Post a new comment",
+            description = "Create a new comment",
+            tags = {"post", "comment"}
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", content = {
-                    @Content(schema = @Schema(implementation = Comment.class),
-                            mediaType = "application/json")})
+            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Comment.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", content = {@Content(schema=@Schema())})
     })
-    @PostMapping
-    public Comment createComment(@RequestBody Comment comment) {
-        return commentRepository.save(comment);
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping()
+    public Comment createComment(@Valid @RequestBody Comment comment) {
+        Comment newComment = commentRepository.save(
+                new Comment(comment.getBody(), comment.getAuthor(),
+                                comment.getCreatedAt(), comment.getUpdatedAt()));
+        return newComment;
     }
-
-
-
 }

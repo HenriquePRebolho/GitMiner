@@ -38,6 +38,8 @@ public class Commit {
             "")
     private String webUrl;
 
+    public Commit() {}
+
     public Commit(String title, String message, String authorName, String authorEmail, String authoredDate, String webUrl) {
         this.title = title;
         this.message = message;
