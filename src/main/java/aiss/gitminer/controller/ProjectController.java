@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -117,51 +118,25 @@ public class ProjectController {
             @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Project.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", content = {@Content(schema=@Schema())})
     })
+
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping()
-    public Project createProject(@Valid @RequestBody Project project) {
 
-        List<Commit> projectCommits = project.getCommits().stream()
-                .map(commit -> commitRepository.save(commit))
-                .collect(Collectors.toList());
+    @PostMapping
+    public Project createProject(@RequestBody Project project) {
+        try {
+            return projectRepository.save(project);
+        } catch (Exception e) {
+            System.out.println("AQUIIII ESTA EL ERRRORRRRRRRRRRRRRRRRRRRRRR ------------------");
+            e.printStackTrace(); // ⬅ esto imprimirá el error en consola
+            throw e;
+        }
+    }
 
-        List<Issue> projectIssues = project.getIssues().stream()
-                .map(issue -> {
-                    // persist author
-                    User author = userRepository.findByUsername(issue.getAuthor().getUsername())
-                            .orElseGet(() -> userRepository.save((issue.getAuthor())));
-                    issue.setAuthor(author);
-
-                    // persist assignee
-                    if (issue.getAssignee() != null) {
-                        User assignee = userRepository.findByUsername(issue.getAssignee().getUsername())
-                                .orElseGet(() -> userRepository.save(issue.getAssignee()));
-                        issue.setAssignee(assignee);
-                    }
-
-                    // persist comments
-                    List<Comment> projectComments = issue.getComments().stream()
-                        .map(comment -> {
-                            User commentAuthor = userRepository.findByUsername(issue.getAuthor().getUsername())
-                                    .orElseGet(() -> userRepository.save((issue.getAuthor())));
-                                comment.setAuthor(commentAuthor);
-                                return comment;
-                            })
-                        .collect(Collectors.toList());
-                    issue.setComments(projectComments);
-
-                    return issueRepository.save(issue);
-                })
-                .collect(Collectors.toList());
-
-        // Saving project with persisted objects
-        Project newProject = new Project();
-        newProject.setName(project.getName());
-        newProject.setWebUrl(project.getWebUrl());
-        newProject.setCommits(project.getCommits());
-        newProject.setIssues(project.getIssues());
-
-        return projectRepository.save(newProject);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAll(Exception e) {
+        e.printStackTrace(); // lo imprime en la consola de IntelliJ
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
     }
 
 
@@ -188,5 +163,6 @@ public class ProjectController {
         }
         projectRepository.deleteById(id);
     }
+
 
 }

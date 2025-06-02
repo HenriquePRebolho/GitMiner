@@ -119,6 +119,7 @@ public class IssueControler {
         return foundIssue.get();
     }
 
+
     
     // GET http://localhost:8080/gitminer/issues/:issueId/comments
     @Operation(
@@ -143,5 +144,26 @@ public class IssueControler {
 
         return issueComments;
     }
+
+    // tenemods que añadir lo siguiente porque sino no funciona los test locales de popular la base de datos
+
+    @Operation(
+            summary = "Create a new issue",
+            description = "Create and return a new issue",
+            tags = { "issue", "post" }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {
+                    @Content(schema = @Schema(implementation = Issue.class),
+                            mediaType = "application/json") })
+    })
+
+    @PostMapping
+    public Issue createIssue(@RequestBody Issue issue) {
+        return issueRepository.save(issue);
+    }
+
+
+
 
 }

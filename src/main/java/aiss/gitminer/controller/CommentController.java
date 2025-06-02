@@ -85,4 +85,19 @@ public class CommentController {
         return foundComment.get();
     }
 
+    @Operation(
+            summary = "Create a new comment",
+            description = "Creates a new comment in the database",
+            tags = {"comments", "post"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", content = {
+                    @Content(schema = @Schema(implementation = Comment.class),
+                            mediaType = "application/json")})
+    })
+    @PostMapping
+    public Comment createComment(@RequestBody Comment comment) {
+        return commentRepository.save(comment);
+    }
+
 }
