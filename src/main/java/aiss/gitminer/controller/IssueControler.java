@@ -160,7 +160,12 @@ public class IssueControler {
 
     @PostMapping
     public Issue createIssue(@RequestBody Issue issue) {
-        return issueRepository.save(issue);
+        Optional<Issue> existing = issueRepository.findByTitleAndCreatedAt(
+                issue.getTitle(),
+                issue.getCreatedAt()
+        );
+
+        return existing.orElseGet(() -> issueRepository.save(issue));
     }
 
 

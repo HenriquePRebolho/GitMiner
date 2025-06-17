@@ -97,7 +97,12 @@ public class CommentController {
     })
     @PostMapping
     public Comment createComment(@RequestBody Comment comment) {
-        return commentRepository.save(comment);
+        Optional<Comment> existing = commentRepository.findByBodyAndCreatedAt(
+                comment.getBody(),
+                comment.getCreatedAt()
+        );
+
+        return existing.orElseGet(() -> commentRepository.save(comment));
     }
 
 }

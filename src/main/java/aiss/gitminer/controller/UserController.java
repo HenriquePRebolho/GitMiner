@@ -104,10 +104,14 @@ public class UserController {
     })
     @PostMapping
     public User createUser(@RequestBody User user) {
-        User newUser = userRepository.save(
-            new User(user.getUsername(), user.getName(), user.getAvatarUrl(), user.getWebUrl())
+        Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
+
+        return existingUser.orElseGet(() ->
+                userRepository.save(
+                        new User(user.getUsername(), user.getName(), user.getAvatarUrl(), user.getWebUrl())
+                )
         );
-        return newUser;
     }
+
 
 }
