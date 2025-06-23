@@ -120,6 +120,34 @@ public class ProjectController {
     public Project createProject(@RequestBody Project project) {
         try {
             if (projectRepository.findByName(project.getName()) == null) {
+
+                // Posting users to avoid duplication
+                for (Issue i : project.getIssues()) {
+                    // Save issue's author
+                    if (i.getAuthor() != null) {
+                        Optional<User> existingAuthor = userRepository.findByWebUrl(i.getAuthor().getWebUrl());
+                        if (existingAuthor.isEmpty()) {
+                            userRepository.save(i.getAuthor());
+                        }
+                    }
+                    // Save issue's assignee
+                    if (i.getAssignee() != null) {
+                        Optional<User> existingAssignee = userRepository.findByWebUrl(i.getAssignee().getWebUrl());
+                        if (existingAssignee.isEmpty()) {
+                            userRepository.save(i.getAssignee());
+                        }
+                    }
+                    // Save comment's authors
+                    for (Comment c : i.getComments()) {
+                        if (c.getAuthor() != null) {
+                            Optional<User> existingCommentAuthor = userRepository.findByWebUrl(c.getAuthor().getWebUrl());
+                            if (existingCommentAuthor.isEmpty()) {
+                                userRepository.save(c.getAuthor());
+                            }
+                        }
+                    }
+                }
+
                 return projectRepository.save(project);
             }
             return projectRepository.findByName(project.getName());
