@@ -19,13 +19,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Tag(name = "Project", description = "Project management API")
 @RestController // indicar que es controlador
@@ -118,25 +115,19 @@ public class ProjectController {
             @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = Project.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", content = {@Content(schema=@Schema())})
     })
-
     @ResponseStatus(HttpStatus.CREATED)
-
     @PostMapping
     public Project createProject(@RequestBody Project project) {
         try {
-            return projectRepository.save(project);
+            if (projectRepository.findByName(project.getName()) == null) {
+                return projectRepository.save(project);
+            }
+            return projectRepository.findByName(project.getName());
+
         } catch (Exception e) {
-            System.out.println("AQUIIII ESTA EL ERRRORRRRRRRRRRRRRRRRRRRRRR ------------------");
-            e.printStackTrace(); // ⬅ esto imprimirá el error en consola
+            e.printStackTrace();
             throw e;
         }
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAll(Exception e) {
-        e.printStackTrace(); // lo imprime en la consola de IntelliJ
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error: " + e.getMessage());
     }
 
 
