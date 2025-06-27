@@ -115,7 +115,7 @@ public class CommitController {
         return newCommit;
     }
 
-    Delete http://localhost:8080/gitminer/commits/:id
+    // Delete http://localhost:8080/gitminer/commits/:id
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
