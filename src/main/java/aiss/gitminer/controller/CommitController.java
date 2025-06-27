@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.hibernate.sql.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -114,4 +115,15 @@ public class CommitController {
         return newCommit;
     }
 
+    Delete http://localhost:8080/gitminer/commits/:id
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) throws CommitNotFoundException {
+        if (!commitRepository.existsById(id)) {
+            throw new CommitNotFoundException();
+        }
+
+        commitRepository.deleteById(id);
+    }
 }
