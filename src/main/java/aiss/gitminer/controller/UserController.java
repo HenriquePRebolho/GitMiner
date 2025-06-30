@@ -1,5 +1,6 @@
 package aiss.gitminer.controller;
 
+import aiss.gitminer.exception.IssueNotFoundException;
 import aiss.gitminer.exception.UserNotFoundException;
 import aiss.gitminer.model.User;
 import aiss.gitminer.repository.UserRepository;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -111,6 +113,17 @@ public class UserController {
                         new User(user.getUsername(), user.getName(), user.getAvatarUrl(), user.getWebUrl())
                 )
         );
+    }
+
+    // Delete http://localhost:8080/gitminer/users/:id
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) throws UserNotFoundException {
+        if (!userRepository.existsById(id)) {
+            throw new UserNotFoundException();
+        }
+
+        userRepository.deleteById(id);
     }
 
 

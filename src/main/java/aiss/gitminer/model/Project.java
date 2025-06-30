@@ -25,12 +25,12 @@ public class Project {
     public String webUrl;
 
     @JsonProperty("commits")
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "projectId")
     private List<Commit> commits;
 
     @JsonProperty("issues")
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "projectId")
     private List<Issue> issues;
 

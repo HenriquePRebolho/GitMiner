@@ -1,6 +1,7 @@
 package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.CommentNotFoundException;
+import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.model.Comment;
 import aiss.gitminer.repository.CommentRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -103,6 +105,16 @@ public class CommentController {
         );
 
         return existing.orElseGet(() -> commentRepository.save(comment));
+    }
+    // Delete http://localhost:8080/gitminer/comments/:id
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) throws CommentNotFoundException {
+        if (!commentRepository.existsById(id)) {
+            throw new CommentNotFoundException();
+        }
+
+        commentRepository.deleteById(id);
     }
 
 }

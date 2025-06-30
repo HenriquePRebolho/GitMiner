@@ -1,5 +1,6 @@
 package aiss.gitminer.controller;
 
+import aiss.gitminer.exception.CommentNotFoundException;
 import aiss.gitminer.exception.IssueNotFoundException;
 import aiss.gitminer.exception.UserNotFoundException;
 import aiss.gitminer.model.Comment;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -164,6 +166,17 @@ public class IssueControler {
         );
 
         return existing.orElseGet(() -> issueRepository.save(issue));
+    }
+
+    // Delete http://localhost:8080/gitminer/issues/:id
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) throws IssueNotFoundException {
+        if (!issueRepository.existsById(id)) {
+            throw new IssueNotFoundException();
+        }
+
+        issueRepository.deleteById(id);
     }
 
 }
