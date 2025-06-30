@@ -2,6 +2,7 @@ package aiss.gitminer.controller;
 
 import aiss.gitminer.exception.IssueNotFoundException;
 import aiss.gitminer.exception.UserNotFoundException;
+import aiss.gitminer.model.Comment;
 import aiss.gitminer.model.User;
 import aiss.gitminer.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -116,9 +117,21 @@ public class UserController {
     }
 
     // Delete http://localhost:8080/gitminer/users/:id
+
+    @Operation(
+            summary = "Delete a user by id",
+            description = "Delete a user by its id",
+            tags = {"Delete by id", "user"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = User.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())}),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())})
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws UserNotFoundException {
+    public void delete(@Parameter (
+            description = "id of the user to be delete") @PathVariable Long id) throws UserNotFoundException {
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException();
         }

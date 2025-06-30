@@ -3,6 +3,7 @@ package aiss.gitminer.controller;
 import aiss.gitminer.exception.CommentNotFoundException;
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.model.Comment;
+import aiss.gitminer.model.Project;
 import aiss.gitminer.repository.CommentRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -107,9 +108,20 @@ public class CommentController {
         return existing.orElseGet(() -> commentRepository.save(comment));
     }
     // Delete http://localhost:8080/gitminer/comments/:id
+    @Operation(
+            summary = "Delete a comment by id",
+            description = "Delete a comment by its id",
+            tags = {"Delete by id", "comment"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Comment.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())}),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())})
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws CommentNotFoundException {
+    public void delete(@Parameter (
+            description = "id of the comment to be delete") @PathVariable Long id) throws CommentNotFoundException {
         if (!commentRepository.existsById(id)) {
             throw new CommentNotFoundException();
         }

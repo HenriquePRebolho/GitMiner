@@ -169,9 +169,20 @@ public class IssueControler {
     }
 
     // Delete http://localhost:8080/gitminer/issues/:id
+    @Operation(
+            summary = "Delete a issue by id",
+            description = "Delete a issue by its id",
+            tags = {"Delete by id", "issue"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Issue.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())}),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())})
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws IssueNotFoundException {
+    public void delete(@Parameter (
+            description = "id of the issue to be delete") @PathVariable Long id) throws IssueNotFoundException {
         if (!issueRepository.existsById(id)) {
             throw new IssueNotFoundException();
         }

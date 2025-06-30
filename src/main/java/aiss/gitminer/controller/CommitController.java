@@ -2,6 +2,7 @@ package aiss.gitminer.controller;
 
 
 import aiss.gitminer.exception.CommitNotFoundException;
+import aiss.gitminer.model.Comment;
 import aiss.gitminer.model.Commit;
 import aiss.gitminer.repository.CommitRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -116,10 +117,20 @@ public class CommitController {
     }
 
     // Delete http://localhost:8080/gitminer/commits/:id
-
+    @Operation(
+            summary = "Delete a commit by id",
+            description = "Delete a commit by its id",
+            tags = {"Delete by id", "commit"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Commit.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())}),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())})
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws CommitNotFoundException {
+    public void delete(@Parameter (
+            description = "id of the commit to be delete") @PathVariable Long id) throws CommitNotFoundException {
         if (!commitRepository.existsById(id)) {
             throw new CommitNotFoundException();
         }
