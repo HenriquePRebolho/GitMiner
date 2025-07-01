@@ -121,28 +121,32 @@ public class ProjectController {
         try {
             if (projectRepository.findByName(project.getName()) == null) {
 
-                // Posting users to avoid duplication
-                for (Issue i : project.getIssues()) {
-                    // Save issue's author
-                    if (i.getAuthor() != null) {
-                        Optional<User> existingAuthor = userRepository.findByWebUrl(i.getAuthor().getWebUrl());
-                        if (existingAuthor.isEmpty()) {
-                            userRepository.save(i.getAuthor());
+                if (project.getIssues() != null) {
+
+                    for (Issue i : project.getIssues()) {
+
+                        if (i.getAuthor() != null) {
+                            Optional<User> existingAuthor = userRepository.findByWebUrl(i.getAuthor().getWebUrl());
+                            if (existingAuthor.isEmpty()) {
+                                userRepository.save(i.getAuthor());
+                            }
                         }
-                    }
-                    // Save issue's assignee
-                    if (i.getAssignee() != null) {
-                        Optional<User> existingAssignee = userRepository.findByWebUrl(i.getAssignee().getWebUrl());
-                        if (existingAssignee.isEmpty()) {
-                            userRepository.save(i.getAssignee());
+
+                        if (i.getAssignee() != null) {
+                            Optional<User> existingAssignee = userRepository.findByWebUrl(i.getAssignee().getWebUrl());
+                            if (existingAssignee.isEmpty()) {
+                                userRepository.save(i.getAssignee());
+                            }
                         }
-                    }
-                    // Save comment's authors
-                    for (Comment c : i.getComments()) {
-                        if (c.getAuthor() != null) {
-                            Optional<User> existingCommentAuthor = userRepository.findByWebUrl(c.getAuthor().getWebUrl());
-                            if (existingCommentAuthor.isEmpty()) {
-                                userRepository.save(c.getAuthor());
+
+                        if (i.getComments() != null) {
+                            for (Comment c : i.getComments()) {
+                                if (c.getAuthor() != null) {
+                                    Optional<User> existingCommentAuthor = userRepository.findByWebUrl(c.getAuthor().getWebUrl());
+                                    if (existingCommentAuthor.isEmpty()) {
+                                        userRepository.save(c.getAuthor());
+                                    }
+                                }
                             }
                         }
                     }
@@ -150,6 +154,7 @@ public class ProjectController {
 
                 return projectRepository.save(project);
             }
+
             return projectRepository.findByName(project.getName());
 
         } catch (Exception e) {
