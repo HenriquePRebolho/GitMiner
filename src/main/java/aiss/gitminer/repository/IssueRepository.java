@@ -13,4 +13,9 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
     Page<Issue> findByState(String state, Pageable paging);
     Optional<Issue> findByTitleAndCreatedAt(String title, String createdAt);
 
+    Page<Issue> findByStateAndCreatedAt(String state, String createdAt, Pageable paging);
+
+    Page<Issue> findByStateAndAuthorId(String state, Long authorId, Pageable paging);
+
+    Page<Issue> findByCreatedAt(String createdAt, Pageable paging);
 }

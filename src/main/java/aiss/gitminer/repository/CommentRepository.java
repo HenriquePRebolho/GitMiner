@@ -13,4 +13,5 @@ public interface CommentRepository extends JpaRepository <Comment, Long> {
     Page<Comment> findByAuthor(String author, Pageable paging);
     Optional<Comment> findByBodyAndCreatedAt(String body, String createdAt);
 
+    Page<Comment> findByCreatedAt(Pageable paging, String createdAt);
 }

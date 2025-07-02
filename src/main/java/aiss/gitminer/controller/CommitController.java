@@ -1,6 +1,9 @@
 package aiss.gitminer.controller;
 
 
+import aiss.gitminer.exception.CommitByAuthorNameNotFoundException;
+import aiss.gitminer.exception.CommitByFechaAndAuthorNameNotFoundException;
+import aiss.gitminer.exception.CommitByFechaNotFoundException;
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.model.Comment;
 import aiss.gitminer.model.Commit;
@@ -44,10 +47,13 @@ public class CommitController {
                             mediaType = "application/json")})
     })
     @GetMapping // especificar metodo HTTP a utilizar
-    public List<Commit> findAll (@RequestParam(required = false) String author_name,
-                               @RequestParam(required = false) String order,
-                               @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "5") int size) {
+    public List<Commit> findAll (@RequestParam(required = false) String authored_date,
+                                 @RequestParam(required = false) String author_name,
+                                 @RequestParam(required = false) String order,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "5") int size)
+    throws CommitByFechaNotFoundException, CommitByFechaAndAuthorNameNotFoundException,
+            CommitByAuthorNameNotFoundException {
         Pageable paging;
 
         if (order != null) {
@@ -64,11 +70,29 @@ public class CommitController {
 
         Page<Commit> pageCommits;
 
-        if (author_name == null) {
+        if (author_name == null && authored_date == null) {
             pageCommits = commitRepository.findAll(paging);
         }
         else {
-            pageCommits = commitRepository.findByAuthorName(author_name, paging);
+            if (authored_date != null) {
+                if (author_name != null) {
+                    pageCommits = commitRepository.findByAuthorNameAndAuthoredDate(author_name, authored_date, paging);
+                    if (pageCommits.isEmpty()) {
+                        throw new CommitByFechaAndAuthorNameNotFoundException();
+                    }
+                } else {
+                    pageCommits = commitRepository.findByAuthoredDate(authored_date, paging);
+                    if (pageCommits.isEmpty()) {
+                        throw new CommitByFechaNotFoundException();
+                    }
+                }
+            }
+            else {
+                pageCommits = commitRepository.findByAuthorName(author_name, paging);
+                if (pageCommits.isEmpty()) {
+                    throw new CommitByAuthorNameNotFoundException();
+                }
+            }
         }
         return pageCommits.getContent();
     }

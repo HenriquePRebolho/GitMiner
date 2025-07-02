@@ -52,11 +52,12 @@ public class IssueControler {
                             mediaType = "application/json")})
     })
     @GetMapping // especificar metodo HTTP a utilizar
-    public List<Issue> findAll (@RequestParam(required = false) String state,
+    public List<Issue> findAll (@RequestParam(required = false) String created_at,
+                                @RequestParam(required = false) String state,
                                 @RequestParam(required = false) Long authorId,
-                                  @RequestParam(required = false) String order,
-                                  @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "5") int size)
+                                @RequestParam(required = false) String order,
+                                @RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "5") int size)
             throws UserNotFoundException{
         Pageable paging;
 
@@ -74,27 +75,50 @@ public class IssueControler {
 
         Page<Issue> pageIssues;
 
-        if (state != null && authorId == null){
-            pageIssues = issueRepository.findByState(state, paging);
-            return pageIssues.getContent();
-        }
-        else if (state == null && authorId != null) {
-            Optional<User> userFound = userRepository.findById(authorId);
-
-            if (!userFound.isPresent()) {
-                throw new UserNotFoundException();
-            }
-
-            List<Issue> issuesByAuthorId = issueRepository.findAll();
-            issuesByAuthorId = issuesByAuthorId.stream()
-                    .filter(issue -> issue.getAuthor().getId().equals(authorId))
-                    .collect(Collectors.toList());
-
-            return issuesByAuthorId;
-        }
-        else {
+        if (state == null && authorId == null && created_at == null) {
             pageIssues = issueRepository.findAll(paging);
             return pageIssues.getContent();
+        }
+        else {
+            if (state != null) {
+                if (authorId != null && created_at == null) {
+                    pageIssues = issueRepository.findByStateAndAuthorId(state, authorId, paging);
+                    return pageIssues.getContent();
+                }
+                else if (authorId == null && created_at != null)  {
+                    pageIssues = issueRepository.findByStateAndCreatedAt(state, created_at, paging);
+                    return pageIssues.getContent();
+                }
+                else {
+                    pageIssues = issueRepository.findByState(state, paging);
+                    return pageIssues.getContent();
+                }
+            } else if (authorId != null) {
+                Optional<User> userFound = userRepository.findById(authorId);
+                if (!userFound.isPresent()) {
+                    throw new UserNotFoundException();
+                }
+
+                if (created_at == null) {
+                    List<Issue> issuesByAuthorId = issueRepository.findAll();
+                    issuesByAuthorId = issuesByAuthorId.stream()
+                            .filter(issue -> issue.getAuthor().getId().equals(authorId))
+                            .collect(Collectors.toList());
+
+                    return issuesByAuthorId;
+                }
+                else {
+                    List<Issue> issuesByAuthorIdAndCreatedAt = issueRepository.findAll();
+                    issuesByAuthorIdAndCreatedAt = issuesByAuthorIdAndCreatedAt.stream()
+                            .filter(issue -> issue.getAuthor().getId().equals(authorId)
+                                && issue.getCreatedAt().equals(created_at))
+                            .collect(Collectors.toList());
+                    return issuesByAuthorIdAndCreatedAt;
+                }
+            } else {
+                pageIssues = issueRepository.findByCreatedAt(created_at, paging);
+                return pageIssues.getContent();
+            }
         }
     }
 

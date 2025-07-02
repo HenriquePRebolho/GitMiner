@@ -1,5 +1,6 @@
 package aiss.gitminer.controller;
 
+import aiss.gitminer.exception.CommentByCreatedAtNotFoundException;
 import aiss.gitminer.exception.CommentNotFoundException;
 import aiss.gitminer.exception.CommitNotFoundException;
 import aiss.gitminer.model.Comment;
@@ -42,9 +43,11 @@ public class CommentController {
                             mediaType = "application/json")})
     })
     @GetMapping // especificar metodo HTTP a utilizar
-    public List<Comment> findAll (@RequestParam(required = false) String order,
-                               @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "5") int size) {
+    public List<Comment> findAll (@RequestParam(required = false) String created_at,
+                                  @RequestParam(required = false) String order,
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "5") int size)
+                throws CommentByCreatedAtNotFoundException {
         Pageable paging;
 
         if (order != null) {
@@ -60,7 +63,15 @@ public class CommentController {
         }
 
         Page<Comment> pageComments;
-        pageComments = commentRepository.findAll(paging);
+
+        if (created_at == null) {
+            pageComments = commentRepository.findAll(paging);
+        } else {
+            pageComments = commentRepository.findByCreatedAt(paging, created_at);
+            if (pageComments.isEmpty()) {
+                throw new CommentByCreatedAtNotFoundException();
+            }
+        }
 
         return pageComments.getContent();
     }
